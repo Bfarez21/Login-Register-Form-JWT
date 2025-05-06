@@ -28,9 +28,6 @@ npm start
 Abre http://localhost:3000 en tu navegador para ver la aplicación.
 
 🗂️ Estructura del proyecto
-bash
-Copiar
-Editar
 /src
 │
 ├── /components        # Componentes reutilizables
@@ -43,7 +40,9 @@ Editar
 
 
 🔧 Backend
-Este frontend está diseñado para funcionar con un backend en Spring Boot usando PostgreSQL y autenticación JWT. Asegúrate de tener el backend corriendo en http://localhost:8080.
+Este frontend está diseñado para funcionar con un backend en Spring Boot usando 
+PostgreSQL y autenticación JWT. 
+Asegúrate de tener el backend corriendo en http://localhost:8080.
 
 📄 Licencia
 Este proyecto está bajo la Licencia MIT.

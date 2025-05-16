@@ -2,25 +2,55 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
+
 export const Register = () => {
-    const [email, setEmail] = useState('');
-    const [pass, setPass] = useState('');
-    const [name, setName] = useState('');
+    const [formData, setFormData] = useState({
+        dni: '',
+        name: '',
+        apellido: '',
+        username: '',
+        password: '',
+        confirmPassword: ''
+    });
+
+    const [error, setError] = useState('');
     const navigate = useNavigate();
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            await axios.post("http://localhost:8080/api/auth/register", {
-                name,
-                email,
-                password: pass,
-            });
 
+        if (formData.password !== formData.confirmPassword) {
+            setError("Las contraseñas no coinciden");
+            return;
+        }
+
+        try {
+            const endpoint = "/auth/register";
+            const response = await axios.post(API_URL + endpoint, {
+                dni: formData.dni,
+                name: formData.name,
+                apellido: formData.apellido,
+                username: formData.username,
+                password: formData.password
+            });
+            const {token} = response.data;
+
+            //guardar el token en localstorage para usar el futuras peticiones
+            localStorage.setItem('token', token);
+            console.log("token:", token);
             alert("Registro exitoso. Inicia sesión.");
+
             navigate("/login");
         } catch (err) {
-            alert("Error al registrar");
+            setError("Error al registrar. Revisa los datos." + (err.response?.data?.message || err.message));
         }
     };
 
@@ -28,46 +58,74 @@ export const Register = () => {
         <div className="App">
             <div className="auth-form-container">
                 <form className="register-form" onSubmit={handleSubmit}>
-                    <h2>Register</h2>
+                    <h2>Registro</h2>
 
-                    <label htmlFor="name">Full name</label>
+                    {error && <p style={{ color: "red" }}>{error}</p>}
+
+                    <label htmlFor="dni">DNI</label>
                     <input
-                        value={name}
+                        name="dni"
+                        value={formData.dni}
+                        onChange={handleChange}
+                        placeholder="1234567896"
+                        required
+                    />
+
+                    <label htmlFor="name">Nombre</label>
+                    <input
                         name="name"
-                        onChange={(e) => setName(e.target.value)}
-                        id="name"
-                        placeholder="Nombre completo"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Nombre"
                         required
                     />
 
-                    <label htmlFor="email">Email</label>
+                    <label htmlFor="apellido">Apellido</label>
                     <input
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        name="apellido"
+                        value={formData.apellido}
+                        onChange={handleChange}
+                        placeholder="Apellido"
+                        required
+                    />
+
+                    <label htmlFor="username">Email</label>
+                    <input
+                        name="username"
                         type="email"
-                        placeholder="tuemail@gmail.com"
-                        id="email"
-                        name="email"
+                        value={formData.username}
+                        onChange={handleChange}
+                        placeholder="tuuser@gmail.com"
                         required
                     />
 
-                    <label htmlFor="password">Password</label>
+                    <label htmlFor="password">Contraseña</label>
                     <input
-                        value={pass}
-                        onChange={(e) => setPass(e.target.value)}
-                        type="password"
-                        placeholder="********"
-                        id="password"
                         name="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="********"
                         required
                     />
 
-                    <button type="submit">Register</button>
+                    <label htmlFor="confirmPassword">Confirmar Contraseña</label>
+                    <input
+                        name="confirmPassword"
+                        type="password"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="********"
+                        required
+                    />
+
+                    <button type="submit">Registrar</button>
                 </form>
+
                 <button className="link-btn" onClick={() => navigate("/login")}>
-                ¿Ya tienes una cuenta? Inicia sesión aquí.
+                    ¿Ya tienes una cuenta? Inicia sesión aquí.
                 </button>
             </div>
         </div>
-    )
-}
+    );
+};

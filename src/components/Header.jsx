@@ -8,11 +8,11 @@ const Header = () => {
 
     const handleLogout  = () => {
         localStorage.removeItem("token");
-        navigate('/login');
+        navigate('/welcome');
     };
 
     return (
-        <AppBar position="static" sx={{ backgroundColor: '#7439db' }}>
+        <AppBar position="static" color="primary">
             <Toolbar>
                 <Typography variant="h6" component="div">
                     Proyecto React con JWT

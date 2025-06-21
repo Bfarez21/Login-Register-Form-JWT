@@ -22,7 +22,8 @@ export const Login = () => {
 
             localStorage.setItem("token", res.data.token);
             //console.log("token login:", res);
-            navigate("/home");
+            //navigate("/home");
+            navigate("/verification");
         } catch (err) {
             alert("Credenciales inválidas");
         }

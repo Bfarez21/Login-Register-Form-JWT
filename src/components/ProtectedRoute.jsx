@@ -1,35 +1,35 @@
 // components/ProtectedRoute.jsx
 
-// Importa 'Navigate' de 'react-router-dom' para realizar redirecciones
 import { Navigate } from "react-router-dom";
-// Importa la función 'jwt_decode' para decodificar tokens JWT
 import { jwtDecode } from "jwt-decode";
 
-
-// Componente que protege rutas, permitiendo solo acceso a usuarios con token válido
-export default function ProtectedRoute({ children }) {
-  // Obtiene el token JWT almacenado en el localStorage
+export default function ProtectedRoute({ children, reverse = false }) {
   const token = localStorage.getItem("token");
 
-  // Si no hay token, redirige a la página de login
-  if (!token) return <Navigate to="/login" replace />;
+  if (!token) {
+    // Si es una ruta pública y no hay token, permite el acceso
+    if (reverse) return children;
+    return <Navigate to="/login" replace />;
+  }
 
   try {
-    // Intenta decodificar el token para acceder a su contenido
     const decoded = jwtDecode(token);
+    const isExpired = decoded.exp * 1000 < Date.now();
 
-    // Verifica si el token ha expirado (la fecha 'exp' viene en segundos, por eso se multiplica por 1000)
-    if (decoded.exp * 1000 < Date.now()) {
-      // Si el token ha expirado, elimina el token del almacenamiento local
+    if (isExpired) {
       localStorage.removeItem("token");
-      // Redirige a login porque el token no es válido
+      if (reverse) return children;
       return <Navigate to="/login" replace />;
     }
 
-    // Si el token es válido y no expiró, permite acceder al contenido protegido
+    // Si es una ruta pública (reverse=true) y ya está logueado, redirige a /home
+    if (reverse) return <Navigate to="/home" replace />;
+
+    // Si todo está bien y es ruta protegida, permite el acceso
     return children;
+
   } catch {
-    // En caso de error al decodificar (token inválido o corrupto), redirige a login
+    if (reverse) return children;
     return <Navigate to="/login" replace />;
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect,useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../config";
@@ -10,11 +10,44 @@ export const Register = () => {
         apellido: '',
         username: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        respuestaSeguridad: '',
+        preguntaId:null,
+        imagenId:null
     });
 
     const [error, setError] = useState('');
+    const [pregunta, setPregunta] = useState(null);
+    const [respuesta, setRespuesta] = useState(null);
+    const [imagenes, setImagenes] = useState([]);
     const navigate = useNavigate();
+
+    // 1. Obtener pregunta e imágenes al cargar
+    useEffect(() => {
+        axios.get(`${API_URL}/auth/pregunta-imagen-aleatoria`)
+            .then(response => {
+                const data = response.data;
+                // Guarda la pregunta como objeto
+                setPregunta({
+                    id: data.preguntaId,
+                    texto: data.preguntaTexto
+                });
+
+                // Guarda la imagen como un array con un solo objeto
+                setImagenes([{ idImage: data.imagenId, url: data.imagenUrl }]);
+
+                // También puedes actualizar el formData con los ID si lo deseas
+                setFormData(prev => ({
+                    ...prev,
+                    preguntaId: data.preguntaId,
+                    imagenId: data.imagenId
+                }));
+            })
+            .catch(err => {
+                console.error("Error al obtener pregunta e imágenes:", err);
+                setError("No se pudo cargar la pregunta e imágenes.");
+            });
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -23,7 +56,7 @@ export const Register = () => {
             [name]: value
         }));
     };
-
+    // envío de datos
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -39,7 +72,12 @@ export const Register = () => {
                 name: formData.name,
                 apellido: formData.apellido,
                 username: formData.username,
-                password: formData.password
+                password: formData.password,
+
+                // agregar campos verificacion
+                respuestaSeguridad: formData.respuestaSeguridad,
+                preguntaId: formData.preguntaId,
+                imagenId: formData.imagenId
             });
             const {token} = response.data;
 
@@ -118,6 +156,45 @@ export const Register = () => {
                         placeholder="********"
                         required
                     />
+
+                    {/* Mostrar pregunta */}
+                    {pregunta && (
+                        <>
+                            <label>Pregunta secreta:</label>
+                            <p><strong>{pregunta.texto}</strong></p>
+                            <input
+                                name="respuestaSeguridad"
+                                placeholder="Tu respuesta"
+                                value={formData.respuestaSeguridad}
+                                onChange={handleChange}
+                                required
+                            />
+                        </>
+                    )}
+
+                    {/* Mostrar imágenes */}
+                    {imagenes.length > 0 && (
+                        <>
+                            <label>Selecciona una imagen:</label>
+                            <div style={{display: "flex", flexWrap: "wrap", gap: "10px"}}>
+                            {imagenes.map(img => (
+                                    <img
+                                        key={img.idImage}
+                                        src={img.url}
+                                        alt="img"
+                                        style={{
+                                            width: 100,
+                                            height: 100,
+                                            border: formData.imagenId === img.idImage ? "3px solid blue" : "1px solid gray",
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => setFormData(prev => ({ ...prev, imagenId: img.idImage }))}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+
 
                     <button type="submit">Registrar</button>
                 </form>
